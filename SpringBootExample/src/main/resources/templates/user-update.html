@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<meta charset="UTF-8">
+<title>Create myUser</title>
+</head>
+<body>
+<form action="#" th:action="@{/admin/user-update}" th:object="${user}" method="post">
+    <label for="id">ID</label>
+    <input readonly type="number" th:field="*{id}" id="id" placeholder="ID">
+    <br/>
+    <label for="username">username</label>
+    <input type="text" th:field="*{username}" id="username" placeholder="username">
+    <br/>
+    <label for="password">password</label>
+    <input type="text" th:field="*{password}" id="password" placeholder="Password">
+    <br/>
+    <label for="firstname">First name</label>
+    <input type="text" th:field="*{firstname}" id="firstname" placeholder="First Name">
+    <br/>
+    <label for="lastname">Last name</label>
+    <input type="text" th:field="*{lastname}" id="lastname" placeholder="Last Name">
+    <br/>
+    <select required name="role">
+        <option disabled selected value="">Choose role</option>
+        <option value="1">ROLE_USER</option>
+        <option value="2">ROLE_ADMIN</option>
+    </select><br>
+    <input type="submit" value="Update User">
+</form>
+
+<form action="/logout" method="POST">
+    <button>logout</button>
+</form>
+
+</body>
+</html>
