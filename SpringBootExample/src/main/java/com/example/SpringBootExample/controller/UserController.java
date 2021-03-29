@@ -1,5 +1,6 @@
 package com.example.SpringBootExample.controller;
 
+import com.example.SpringBootExample.model.Role;
 import com.example.SpringBootExample.model.User;
 import com.example.SpringBootExample.service.RoleService;
 import com.example.SpringBootExample.service.UserService;
@@ -8,11 +9,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Controller
 public class UserController {
@@ -43,7 +47,9 @@ public class UserController {
     public String getAdmin(@RequestParam(required = false) String username, Model model){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String name = auth.getName();
+
         model.addAttribute("username", name);
+        model.addAttribute("user", userService.findByName(name));
 
         return "/admin";
     }
@@ -64,18 +70,23 @@ public class UserController {
         model.addAttribute("username", name);
         List<User> users = userService.findAll();
         model.addAttribute("users", users);
+        model.addAttribute("user1", userService.findByName(name));
         return "user-list";
     }
 
     @GetMapping("/admin/user-create")
-    public String createUserForm(User user, Model model){
+    public String createUserForm(User user, Model model, String username){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String name = auth.getName();
+        model.addAttribute("username1", name);
+        model.addAttribute("user1", userService.findByName(name));
         model.addAttribute("new_user", new User());
         return "user-create";
     }
 
     @PostMapping("admin/user-create")
-    public String createUser(@ModelAttribute("new_user") User user){
-        user.setRoles(Collections.singleton(roleService.findById(1L)));
+    public String createUser(@ModelAttribute("new_user") User user, HttpServletRequest request){
+        user.setRoles(Collections.singleton(roleService.findById(Long.valueOf(request.getParameter("role")))));
         userService.saveUser(user);
         return "redirect:/admin/users";
     }
@@ -99,5 +110,7 @@ public class UserController {
         userService.update(user);
         return "redirect:/admin/users";
     }
+
+
 
 }
