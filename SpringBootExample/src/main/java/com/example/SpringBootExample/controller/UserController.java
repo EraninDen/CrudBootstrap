@@ -6,6 +6,7 @@ import com.example.SpringBootExample.service.RoleService;
 import com.example.SpringBootExample.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,15 +23,12 @@ import java.util.Set;
 public class UserController {
 
     private final UserService userService;
-
     private final RoleService roleService;
 
     @Autowired
     public UserController(UserService userService, RoleService roleService) {
-
         this.userService = userService;
         this.roleService = roleService;
-
     }
 
     @GetMapping
@@ -47,10 +45,18 @@ public class UserController {
     public String getAdmin(@RequestParam(required = false) String username, Model model){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String name = auth.getName();
-
+        Set<String> roles = AuthorityUtils.authorityListToSet(auth.getAuthorities());
+        boolean hasAdmin;
+        if(roles.contains("ROLE_ADMIN")){
+            hasAdmin=true;
+        } else {
+            hasAdmin=false;
+        }
+        model.addAttribute("hasAdmin", hasAdmin);
         model.addAttribute("username", name);
         model.addAttribute("user", userService.findByName(name));
-
+        model.addAttribute("users", userService.findAll());
+        model.addAttribute("new_user", new User());
         return "/admin";
     }
 
@@ -58,59 +64,37 @@ public class UserController {
     public String getUser(@RequestParam(required = false) String username,Model model){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String name = auth.getName();
+        Set<String> roles = AuthorityUtils.authorityListToSet(auth.getAuthorities());
+        boolean hasAdmin;
+        if(roles.contains("ROLE_ADMIN")){
+            hasAdmin=true;
+        } else {
+            hasAdmin=false;
+        }
+        model.addAttribute("hasAdmin", hasAdmin);
         model.addAttribute("username", name);
         model.addAttribute("user", userService.findByName(name));
         return "user";
-    }
-
-    @GetMapping("/admin/users")
-    public String findAll(@RequestParam(required = false) String username, Model model){
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String name = auth.getName();
-        model.addAttribute("username", name);
-        List<User> users = userService.findAll();
-        model.addAttribute("users", users);
-        model.addAttribute("user1", userService.findByName(name));
-        return "user-list";
-    }
-
-    @GetMapping("/admin/user-create")
-    public String createUserForm(User user, Model model, String username){
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String name = auth.getName();
-        model.addAttribute("username1", name);
-        model.addAttribute("user1", userService.findByName(name));
-        model.addAttribute("new_user", new User());
-        return "user-create";
     }
 
     @PostMapping("admin/user-create")
     public String createUser(@ModelAttribute("new_user") User user, HttpServletRequest request){
         user.setRoles(Collections.singleton(roleService.findById(Long.valueOf(request.getParameter("role")))));
         userService.saveUser(user);
-        return "redirect:/admin/users";
+        return "redirect:/admin";
     }
 
     @GetMapping("/admin/user-delete/{id}")
     public String deleteUser(@PathVariable("id") Long id){
         userService.deleteById(id);
-        return "redirect:/admin/users";
-    }
-
-    @GetMapping("admin/user-update/{id}")
-    public String updateUserForm(@PathVariable("id") Long id, Model model){
-        User user = userService.findById(id);
-        model.addAttribute("user", user);
-        return "user-update";
+        return "redirect:/admin";
     }
 
     @PostMapping("/admin/user-update")
     public String updateUser(@ModelAttribute("user") User user, HttpServletRequest request){
         user.setRoles(Collections.singleton(roleService.findById(Long.valueOf(request.getParameter("role")))));
         userService.update(user);
-        return "redirect:/admin/users";
+        return "redirect:/admin";
     }
-
-
 
 }

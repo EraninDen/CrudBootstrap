@@ -139,7 +139,7 @@ public class User implements UserDetails {
             if (s.length() != 0) {
                 s.append(", ");
             }
-            s.append(r.getRole());
+            s.append(r.getRole().split("_")[1]);
         }
         return s.toString();
     }
